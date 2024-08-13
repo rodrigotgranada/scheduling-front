@@ -1,95 +1,162 @@
 "use client";
 
-import { useForm, SubmitHandler } from "react-hook-form";
-import { useRouter } from 'next/navigation';
-
-type RegisterFormInputs = {
-  firstName: string;
-  lastName: string;
-  email: string;
-  password: string;
-};
+import { useRegister } from "@/hooks/useRegister";
+import { useState } from "react";
 
 export default function Register() {
-  const { register, handleSubmit } = useForm<RegisterFormInputs>();
-  const router = useRouter();
+  const { register, loading, error, success } = useRegister();
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    cpf: "",
+    phone: "",
+    email: "",
+    password: "",
+    foto: null as File | null,
+  });
 
-  const onSubmit: SubmitHandler<RegisterFormInputs> = async (data) => {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/register`, {
-      method: 'POST',
-      body: JSON.stringify(data),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
-    if (res.ok) {
-      alert("Registration successful");
-      router.push('/login');
-    } else {
-      alert("Registration failed");
-    }
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData((prev) => ({ ...prev, foto: e.target.files ? e.target.files[0] : null }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    register(formData);
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <form 
-        onSubmit={handleSubmit(onSubmit)} 
-        className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full"
-      >
-        <h2 className="mb-6 text-2xl font-bold text-center text-gray-700">Register</h2>
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-600">First Name</label>
-          <input
-            {...register("firstName")}
-            type="text"
-            placeholder="Enter your first name"
-            className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md text-gray-700 focus:ring-blue-500 focus:border-blue-500"
-          />
-        </div>
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-600">Last Name</label>
-          <input
-            {...register("lastName")}
-            type="text"
-            placeholder="Enter your last name"
-            className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md text-gray-700 focus:ring-blue-500 focus:border-blue-500"
-          />
-        </div>
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-600">Email</label>
-          <input
-            {...register("email")}
-            type="email"
-            placeholder="Enter your email"
-            className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md text-gray-700 focus:ring-blue-500 focus:border-blue-500"
-          />
-        </div>
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-600">Password</label>
-          <input
-            {...register("password")}
-            type="password"
-            placeholder="Enter your password"
-            className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md text-gray-700 focus:ring-blue-500 focus:border-blue-500"
-          />
-        </div>
-        <button 
-          type="submit" 
-          className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition-colors"
-        >
-          Register
-        </button>
-        <div className="mt-4 text-center">
-          <button 
-            type="button" 
-            onClick={() => router.push('/login')}
-            className="text-blue-500 hover:underline"
-          >
-            Já tem uma conta? Faça login
-          </button>
-        </div>
-      </form>
+    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <div className="w-full max-w-md p-8 space-y-6 bg-white shadow-md rounded-md">
+        <h2 className="text-2xl font-bold text-center">Register</h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
+              First Name
+            </label>
+            <input
+              type="text"
+              id="firstName"
+              name="firstName"
+              value={formData.firstName}
+              onChange={handleChange}
+              required
+              className="w-full mt-1 p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
+              Last Name
+            </label>
+            <input
+              type="text"
+              id="lastName"
+              name="lastName"
+              value={formData.lastName}
+              onChange={handleChange}
+              required
+              className="w-full mt-1 p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="cpf" className="block text-sm font-medium text-gray-700">
+              CPF
+            </label>
+            <input
+              type="text"
+              id="cpf"
+              name="cpf"
+              value={formData.cpf}
+              onChange={handleChange}
+              required
+              className="w-full mt-1 p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+              Phone
+            </label>
+            <input
+              type="text"
+              id="phone"
+              name="phone"
+              value={formData.phone}
+              onChange={handleChange}
+              required
+              className="w-full mt-1 p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              Email
+            </label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              required
+              className="w-full mt-1 p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              Password
+            </label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              required
+              className="w-full mt-1 p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="foto" className="block text-sm font-medium text-gray-700">
+              Photo (optional)
+            </label>
+            <input
+              type="file"
+              id="foto"
+              name="foto"
+              onChange={handleFileChange}
+              className="w-full mt-1 p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+            />
+          </div>
+
+          {error && <p className="text-red-500">{error}</p>}
+          {success && <p className="text-green-500">{success}</p>}
+          {loading ? (
+            <button
+              type="submit"
+              disabled
+              className="w-full py-2 px-4 bg-gray-400 text-white font-semibold rounded-md shadow-sm cursor-not-allowed"
+            >
+              Registering...
+            </button>
+          ) : (
+            <button
+              type="submit"
+              className="w-full py-2 px-4 bg-indigo-600 text-white font-semibold rounded-md shadow-sm hover:bg-indigo-700"
+            >
+              Register
+            </button>
+          )}
+        </form>
+      </div>
     </div>
   );
 }

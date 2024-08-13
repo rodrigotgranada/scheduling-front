@@ -1,18 +1,10 @@
-
 import { jwtDecode } from "jwt-decode";
-import NextAuth, { NextAuthOptions } from "next-auth";
+import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-
 
 interface DecodedToken {
   sub: string;  // O ID do usuário
   role: string; // A role do usuário
-}
-
-interface User {
-  id: string;
-  role: string;
-  token: string;
 }
 
 export default NextAuth({
@@ -24,29 +16,30 @@ export default NextAuth({
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
+        if (!credentials) {
+          return null;
+        }
         try {
           const url = `${process.env.NEXT_PUBLIC_API_URL}/auth/login`;
-          console.log('url', url);
-          console.log('credentials', credentials);
           const res = await fetch(url, {
             method: 'POST',
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(credentials),
+            body: JSON.stringify({
+              email: credentials.email,
+              password: credentials.password,
+            }),
+            credentials: 'include', // Necessário para enviar cookies
           });
-        
+
           const user = await res.json();
-          console.log("User returned from backend:", user);
 
           if (res.ok && user && user.accessToken) {
-            // Decodifica o token JWT para extrair as informações do usuário
             const decodedToken = jwtDecode<DecodedToken>(user.accessToken);
-
-            console.log('decodedToken', decodedToken)
             return {
-              id: decodedToken.sub,  // O ID do usuário extraído do token
-              role: decodedToken.role,  // A role do usuário extraída do token
-              token: user.accessToken,  // O token original
-            } as User;
+              id: decodedToken.sub,
+              role: decodedToken.role,
+              token: user.accessToken,
+            };
           }
           return null;
         } catch (error) {
@@ -61,7 +54,7 @@ export default NextAuth({
       if (user) {
         token.id = user.id;
         token.role = user.role;
-        token.token = user.token;  // Passa o token para o JWT
+        token.token = user.token;
       }
       return token;
     },
@@ -69,14 +62,21 @@ export default NextAuth({
       if (token) {
         session.user.id = token.id as string;
         session.user.role = token.role as string;
-        session.user.token = token.token as string;  // Inclui o token na sessão
+        session.user.token = token.token as string;
       }
       return session;
     },
   },
-  pages: {
-    error: '/(open)/error-page', // Redireciona para a sua página de erro customizada
-  },
   secret: process.env.NEXTAUTH_SECRET,
-} as NextAuthOptions);
-
+  session: {
+    strategy: 'jwt', // Importante para trabalhar com JWT em cookies
+    maxAge: 7 * 24 * 60 * 60, // Uma semana
+  },
+  jwt: {
+    secret: process.env.NEXTAUTH_SECRET,
+  },
+  pages: {
+    signIn: '/login',
+    error: '/error-page',  // Rota personalizada de erro
+  },
+});
