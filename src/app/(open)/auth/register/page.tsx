@@ -4,7 +4,7 @@ import { useRegister } from "@/hooks/useRegister";
 import { useState } from "react";
 
 export default function Register() {
-  const { register, loading, error, success } = useRegister();
+  const { register, loading, error,  } = useRegister();
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -14,6 +14,7 @@ export default function Register() {
     password: "",
     foto: null as File | null,
   });
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -21,12 +22,34 @@ export default function Register() {
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData((prev) => ({ ...prev, foto: e.target.files ? e.target.files[0] : null }));
+    const file = e.target.files ? e.target.files[0] : null;
+    setFormData((prev) => ({ ...prev, foto: file || null })); // Adicione || null para garantir que o valor não seja undefined
+
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewUrl(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setPreviewUrl(null);
+    }
+};
+
+
+  const handleRemoveImage = () => {
+    setFormData((prev) => ({ ...prev, foto: null }));
+    setPreviewUrl(null);
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    register(formData);
+  try {
+    const successMessage = await register(formData);
+    alert(successMessage);  // Exibe a mensagem de sucesso
+  } catch (err) {
+   return 
+  }
   };
 
   return (
@@ -42,10 +65,10 @@ export default function Register() {
               type="text"
               id="firstName"
               name="firstName"
-              value={formData.firstName}
+              value={formData.firstName || ""}
               onChange={handleChange}
               required
-              className="w-full mt-1 p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+              className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md text-gray-700 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
 
@@ -57,10 +80,10 @@ export default function Register() {
               type="text"
               id="lastName"
               name="lastName"
-              value={formData.lastName}
+              value={formData.lastName || ""}
               onChange={handleChange}
               required
-              className="w-full mt-1 p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+              className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md text-gray-700 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
 
@@ -72,10 +95,10 @@ export default function Register() {
               type="text"
               id="cpf"
               name="cpf"
-              value={formData.cpf}
+              value={formData.cpf || ""}
               onChange={handleChange}
               required
-              className="w-full mt-1 p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+              className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md text-gray-700 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
 
@@ -87,10 +110,10 @@ export default function Register() {
               type="text"
               id="phone"
               name="phone"
-              value={formData.phone}
+              value={formData.phone || ""}
               onChange={handleChange}
               required
-              className="w-full mt-1 p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+              className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md text-gray-700 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
 
@@ -102,10 +125,10 @@ export default function Register() {
               type="email"
               id="email"
               name="email"
-              value={formData.email}
+              value={formData.email || ""}
               onChange={handleChange}
               required
-              className="w-full mt-1 p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+              className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md text-gray-700 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
 
@@ -117,10 +140,10 @@ export default function Register() {
               type="password"
               id="password"
               name="password"
-              value={formData.password}
+              value={formData.password || ""}
               onChange={handleChange}
               required
-              className="w-full mt-1 p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+              className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md text-gray-700 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
 
@@ -128,17 +151,30 @@ export default function Register() {
             <label htmlFor="foto" className="block text-sm font-medium text-gray-700">
               Photo (optional)
             </label>
-            <input
-              type="file"
-              id="foto"
-              name="foto"
-              onChange={handleFileChange}
-              className="w-full mt-1 p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
-            />
+            {previewUrl ? (
+              <div className="relative">
+                <img src={previewUrl} alt="Preview" className="w-20 h-20 object-cover rounded-full" />
+                <button
+                  type="button"
+                  onClick={handleRemoveImage}
+                  className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1 text-xs"
+                >
+                  X
+                </button>
+              </div>
+            ) : (
+              <input
+                type="file"
+                id="foto"
+                name="foto"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="w-full mt-1 p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            )}
           </div>
 
           {error && <p className="text-red-500">{error}</p>}
-          {success && <p className="text-green-500">{success}</p>}
           {loading ? (
             <button
               type="submit"

@@ -14,7 +14,7 @@ export default function Login() {
   const router = useRouter();
 
   const onSubmit: SubmitHandler<LoginFormInputs> = async (data) => {
-    console.log("Submitting login form with data", data);
+    // console.log("Submitting login form with data", data);
     const result = await signIn("credentials", {
       redirect: false,
       email: data.email,
