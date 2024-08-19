@@ -9,7 +9,7 @@ export const useRegister = () => {
     try {
       setLoading(true);
       setError(null);
-
+  
       const formData = new FormData();
       formData.append('firstName', data.firstName);
       formData.append('lastName', data.lastName);
@@ -17,20 +17,20 @@ export const useRegister = () => {
       formData.append('phone', data.phone);
       formData.append('email', data.email);
       formData.append('password', data.password);
-
+  
       if (data.foto) {
         formData.append('foto', data.foto);
       }
-
+  
       const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/auth/register`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
-
+  
       return response.data.message || "Registrado com sucesso";
     } catch (err: any) {
-      const errorMessage = err.response?.data?.message || 'Registration failed';
+      const errorMessage = err.response?.data?.message || 'Ocorreu um erro durante o registro';
       setError(errorMessage);
       throw err;
     } finally {

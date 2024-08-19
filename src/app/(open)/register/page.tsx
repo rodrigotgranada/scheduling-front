@@ -1,7 +1,10 @@
 "use client";
 
 import { useRegister } from "@/hooks/useRegister";
-import { useState } from "react";
+import { signOut, useSession } from "next-auth/react";
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from "react";
+import { toast } from 'react-toastify';
 
 export default function Register() {
   const { register, loading, error,  } = useRegister();
@@ -15,6 +18,20 @@ export default function Register() {
     foto: null as File | null,
   });
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const { data: session } = useSession();
+  const router = useRouter();
+
+  // Limpeza dos cookies e redirecionamento se estiver logado
+  useEffect(() => {
+    if (session) {
+      try {
+        signOut();
+        
+      } catch (error) {
+        console.log(error)
+      }
+    }
+  }, [session, router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -44,12 +61,13 @@ export default function Register() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-  try {
-    const successMessage = await register(formData);
-    alert(successMessage);  // Exibe a mensagem de sucesso
-  } catch (err) {
-   return 
-  }
+    try {
+      const successMessage = await register(formData);
+      toast.success(successMessage);
+      router.push('/'); // Redireciona para a home após o registro
+    } catch (err) {
+      toast.error(error || 'Erro ao registrar usuário'); // Mostra o toast de erro
+    }
   };
 
   return (
@@ -181,14 +199,14 @@ export default function Register() {
               disabled
               className="w-full py-2 px-4 bg-gray-400 text-white font-semibold rounded-md shadow-sm cursor-not-allowed"
             >
-              Registering...
+              Registrando...
             </button>
           ) : (
             <button
               type="submit"
               className="w-full py-2 px-4 bg-indigo-600 text-white font-semibold rounded-md shadow-sm hover:bg-indigo-700"
             >
-              Register
+              Registrar
             </button>
           )}
         </form>

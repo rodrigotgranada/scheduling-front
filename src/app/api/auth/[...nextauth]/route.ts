@@ -1,19 +1,33 @@
-import { jwtDecode } from "jwt-decode";
-import NextAuth from "next-auth";
+import NextAuth, { AuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import {jwtDecode} from "jwt-decode";
+import type { JWT } from "next-auth/jwt";
+import type { Session } from "next-auth";
 
 interface DecodedToken {
-  sub: string;  // O ID do usuário
-  role: string; // A role do usuário
+  sub: string;
+  role: string;
 }
 
-export default NextAuth({
+interface Token extends JWT {
+  id?: string;
+  role?: string;
+  token?: string;
+}
+
+interface User {
+  id: string;
+  role: string;
+  token: string;
+}
+
+export const authOptions: AuthOptions = {
   providers: [
     CredentialsProvider({
       name: "Credentials",
       credentials: {
         email: { label: "Email", type: "email", placeholder: "jsmith@example.com" },
-        password: { label: "Password", type: "password" }
+        password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
         if (!credentials) {
@@ -22,24 +36,23 @@ export default NextAuth({
         try {
           const url = `${process.env.NEXT_PUBLIC_API_URL}/auth/login`;
           const res = await fetch(url, {
-            method: 'POST',
+            method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               email: credentials.email,
               password: credentials.password,
             }),
-            credentials: 'include', // Necessário para enviar cookies
+            credentials: "include",
           });
 
           const user = await res.json();
-
           if (res.ok && user && user.accessToken) {
             const decodedToken = jwtDecode<DecodedToken>(user.accessToken);
             return {
               id: decodedToken.sub,
               role: decodedToken.role,
               token: user.accessToken,
-            };
+            } as User;
           }
           return null;
         } catch (error) {
@@ -50,7 +63,7 @@ export default NextAuth({
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user }: { token: Token; user?: User }) {
       if (user) {
         token.id = user.id;
         token.role = user.role;
@@ -58,7 +71,7 @@ export default NextAuth({
       }
       return token;
     },
-    async session({ session, token }) {
+    async session({ session, token }: { session: Session; token: Token }) {
       if (token) {
         session.user.id = token.id as string;
         session.user.role = token.role as string;
@@ -69,14 +82,18 @@ export default NextAuth({
   },
   secret: process.env.NEXTAUTH_SECRET,
   session: {
-    strategy: 'jwt', // Importante para trabalhar com JWT em cookies
-    maxAge: 7 * 24 * 60 * 60, // Uma semana
+    strategy: "jwt",
+    maxAge: 7 * 24 * 60 * 60,
   },
   jwt: {
     secret: process.env.NEXTAUTH_SECRET,
   },
   pages: {
-    signIn: '/login',
-    error: '/error-page',  // Rota personalizada de erro
+    signIn: "/login",
+    error: "/error-page",
   },
-});
+};
+
+// Exportação nomeada para métodos HTTP
+export const GET = NextAuth(authOptions);
+export const POST = NextAuth(authOptions);
