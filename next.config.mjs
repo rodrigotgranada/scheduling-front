@@ -10,6 +10,9 @@ const nextConfig = {
       }
     ];
   },
+  images: {
+    domains: ['ui-avatars.com', 'firebasestorage.googleapis.com'],
+  },
 }
 
 export default nextConfig;
