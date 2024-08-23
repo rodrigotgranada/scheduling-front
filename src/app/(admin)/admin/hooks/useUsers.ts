@@ -30,7 +30,7 @@ export const useUsers = () => {
         const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/users`, {
           headers: {
             Authorization: `Bearer ${session?.user?.token}`,
-          },
+          }
         });
         setUsers(response.data);
         setIsLoading(false);
@@ -44,37 +44,35 @@ export const useUsers = () => {
   }, [session]);
 
   const saveUser = async (userId: string, formData: FormData) => {
-
-    console.log(userId, formData)
     if (!session) {
-      setError('Sessão não encontrada');
-      return { success: false };
+        setError('Sessão não encontrada');
+        return { success: false };
     }
-
+    
     try {
-      const response = await axios.patch(
-        `${process.env.NEXT_PUBLIC_API_URL}/users/admin/${userId}`,
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${session.user?.token}`,
-          },
-        }
-      );
+        const response = await axios.patch(`${process.env.NEXT_PUBLIC_API_URL}/users/admin/${userId}`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+                Authorization: `Bearer ${session?.user.token}`,
+            },
+            withCredentials: true,
+        });
 
-      if (response.status === 200) {
-        setUsers((prevUsers) =>
-          prevUsers.map((user) =>
-            user.id === userId ? { ...user, ...Object.fromEntries(formData.entries()) } : user
-          )
-        );
-        return { success: true };
-      }
+        if (response.status === 200) {
+            const updatedUser = response.data; // Supondo que a resposta do backend retorne o usuário atualizado
+            setUsers((prevUsers) =>
+                prevUsers.map((user) =>
+                    user.id === userId ? { ...user, ...updatedUser } : user
+                )
+            );
+            return { success: true };
+        }
     } catch (err) {
-      console.error('Erro ao salvar usuário:', err);
-      return { success: false };
+        console.error('Erro ao salvar usuário:', err);
+        return { success: false };
     }
-  };
+};
+
 
   return { users, isLoading, error, saveUser };
 };

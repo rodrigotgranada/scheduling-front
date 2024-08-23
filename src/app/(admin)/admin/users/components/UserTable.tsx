@@ -57,6 +57,7 @@ const UserTable = () => {
   };
 
   const handleSaveUser = (userId: string, formData: FormData) => {
+    console.log("USERTABLE", userId, formData);
     saveUser(userId, formData);
   };
 
@@ -134,15 +135,15 @@ const UserTable = () => {
                   width={40}
                   height={40}
                   style={{ width: "auto", height: "auto" }}
-                  onError={(e) => {
-                    const element = e.target as HTMLImageElement;
-                    if (
-                      element.src !==
-                      `https://ui-avatars.com/api/?name=${user.firstName}+${user.lastName}&background=random`
-                    ) {
-                      element.src = `https://ui-avatars.com/api/?name=${user.firstName}+${user.lastName}&background=random`;
-                    }
-                  }}
+                  // onError={(e) => {
+                  //   const element = e.target as HTMLImageElement;
+                  //   if (
+                  //     element.src !==
+                  //     `https://ui-avatars.com/api/?name=${user.firstName}+${user.lastName}&background=random`
+                  //   ) {
+                  //     element.src = `https://ui-avatars.com/api/?name=${user.firstName}+${user.lastName}&background=random`;
+                  //   }
+                  // }}
                 />
               </td>
               <td className="p-2">

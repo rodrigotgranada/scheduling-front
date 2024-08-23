@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { FaPen, FaTimes, FaSave } from "react-icons/fa";
+import { toast } from "react-toastify";
 
 interface UserProfilePictureFormProps {
   firstName: string;
   lastName: string;
   initialFoto: string;
-  onSave: (file: File | null) => void;
+  onSave: (file: File | null) => Promise<void>;
 }
 
 const UserProfilePictureForm: React.FC<UserProfilePictureFormProps> = ({
@@ -29,7 +30,7 @@ const UserProfilePictureForm: React.FC<UserProfilePictureFormProps> = ({
     const file = event.target.files?.[0];
     if (file) {
       setSelectedFile(file);
-      setPreviewUrl(URL.createObjectURL(file)); // Usando URL de pré-visualização
+      setPreviewUrl(URL.createObjectURL(file)); // URL de pré-visualização local
       setIsChanged(true);
     }
   };
@@ -40,9 +41,15 @@ const UserProfilePictureForm: React.FC<UserProfilePictureFormProps> = ({
     setIsChanged(true);
   };
 
-  const handleSubmit = () => {
-    onSave(selectedFile); // Envia o arquivo selecionado para ser salvo
-    setIsChanged(false);
+  const handleSubmit = async () => {
+    try {
+      await onSave(selectedFile);
+      toast.success("Foto atualizada com sucesso!");
+      setIsChanged(false);
+    } catch (error) {
+      toast.error("Erro ao atualizar a foto.");
+      console.error("Erro ao atualizar a foto:", error);
+    }
   };
 
   return (

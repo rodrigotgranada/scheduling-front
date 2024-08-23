@@ -43,14 +43,15 @@ const UserOffcanvas: React.FC<UserOffcanvasProps> = ({
     }
   };
 
-  const handleSavePicture = (file: File | null) => {
+  const handleSavePicture = async (file: File | null) => {
     const formData = new FormData();
+
     if (file) {
       formData.append("foto", file);
     } else {
-      formData.append("foto", ""); // Para remover a foto
+      formData.append("foto", ""); // Envia um valor vazio para remover a foto
     }
-    handleSave(formData);
+    await handleSave(formData);
   };
 
   if (!user) return null;
